@@ -261,6 +261,19 @@ Instructions:
 
         let stdoutData = '';
         let stderrData = '';
+        let isHandled = false;
+
+        // 80-second hard server timeout for the spawned agent
+        const processTimeout = setTimeout(() => {
+          if (!isHandled) {
+            isHandled = true;
+            try { agyProcess.kill(); } catch (e) {}
+            if (!res.headersSent) {
+              res.writeHead(504, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'AI arrangement timed out (80s limit reached). Please try a shorter request.' }));
+            }
+          }
+        }, 80000);
 
         agyProcess.stdout.on('data', data => {
           stdoutData += data.toString();
@@ -270,11 +283,28 @@ Instructions:
           stderrData += data.toString();
         });
 
+        agyProcess.on('error', err => {
+          clearTimeout(processTimeout);
+          if (isHandled) return;
+          isHandled = true;
+          console.error('[AI-Edit] Failed to spawn agy process:', err);
+          if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Could not launch AI agent: ${err.message}` }));
+          }
+        });
+
         agyProcess.on('close', code => {
+          clearTimeout(processTimeout);
+          if (isHandled) return;
+          isHandled = true;
+
           if (code !== 0) {
             console.error(`[AI-Edit] agy exited with code ${code}:`, stderrData);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: stderrData || `AI agent exited with code ${code}` }));
+            if (!res.headersSent) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: stderrData || `AI agent exited with code ${code}` }));
+            }
             return;
           }
 
@@ -303,20 +333,16 @@ Instructions:
             }
           } catch (e) {}
 
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({
-            success: true,
-            filename: safeFile,
-            code: updatedScore,
-            message: responseText.trim(),
-            conversationId: convId,
-          }));
-        });
-
-        req.on('timeout', () => {
-          agyProcess.kill();
-          res.writeHead(504, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'AI request timed out' }));
+          if (!res.headersSent) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              filename: safeFile,
+              code: updatedScore,
+              message: responseText.trim(),
+              conversationId: convId,
+            }));
+          }
         });
 
       } catch (err) {

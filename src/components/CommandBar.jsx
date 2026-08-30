@@ -84,15 +84,23 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
 
     setHistory(prev => [...prev, { sender: 'user', text: userText, time: new Date().toLocaleTimeString() }]);
 
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, 90000); // 90-second safety timeout
+
     try {
       const response = await fetch('/api/ai-edit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           prompt: userText,
           scoreFile: currentFile || 'skyfall.abc'
         }),
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -108,10 +116,15 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
         setAbcCode(data.code);
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('AI Edit Error:', err);
-      setError(err.message || 'Error communicating with AI engine');
-      setHistory(prev => [...prev, { sender: 'ai', text: `Error: ${err.message}`, time: new Date().toLocaleTimeString(), isError: true }]);
+      const errorMessage = err.name === 'AbortError'
+        ? 'Request timed out after 90s. The AI engine took too long to respond.'
+        : (err.message || 'Error communicating with AI engine');
+      setError(errorMessage);
+      setHistory(prev => [...prev, { sender: 'ai', text: `Error: ${errorMessage}`, time: new Date().toLocaleTimeString(), isError: true }]);
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
       if (inputRef.current) inputRef.current.focus();
     }
