@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Production build artifacts
+dist/
+
+# Logs & Environment
+*.log
+.env
+.env.local
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# User Score Library (Ignored by default, whitelist tested samples)
+library/*
+!library/bach_minuet.abc
+!library/jazz_autumn.abc
+!library/starter_sketch.abc
