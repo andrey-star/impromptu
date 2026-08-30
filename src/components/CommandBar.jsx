@@ -8,6 +8,15 @@ marked.setOptions({
   breaks: true,
 });
 
+const LOADING_PHRASES = [
+  "Engraving...",
+  "Inking staves...",
+  "Notating harmony...",
+  "Aligning voices...",
+  "Setting barlines...",
+  "Spacing rhythm...",
+];
+
 export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,9 +25,22 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
   const [lastResponse, setLastResponse] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
+  const [phraseIndex, setPhraseIndex] = useState(0);
   const recognitionRef = useRef(null);
   const inputRef = useRef(null);
   const autoDismissTimerRef = useRef(null);
+
+  // Cycle through scribe loading phrases while loading
+  useEffect(() => {
+    if (!isLoading) {
+      setPhraseIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setPhraseIndex(prev => (prev + 1) % LOADING_PHRASES.length);
+    }, 2200);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   // Initialize Web Speech API for voice dictation
   useEffect(() => {
@@ -228,7 +250,7 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
       {isLoading && (
         <div className="floating-loading-pill">
           <Loader2 size={13} className="animate-spin" />
-          <span>Arranging musical edits...</span>
+          <span key={phraseIndex} className="loading-phrase-text">{LOADING_PHRASES[phraseIndex]}</span>
         </div>
       )}
 

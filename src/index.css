@@ -783,6 +783,12 @@ html, body {
   animation: fadeIn 0.15s ease;
 }
 
+.loading-phrase-text {
+  display: inline-block;
+  min-width: 120px;
+  animation: fadeIn 0.3s ease;
+}
+
 /* Rich Markdown Typography */
 .markdown-content {
   color: #d4d4d8;
