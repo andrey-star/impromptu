@@ -286,7 +286,6 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
           onKeyDown={handleKeyDown}
           placeholder={isListening ? "Listening... (speak notes or chords)" : "Dictate notes, chords, or edits..."}
           className="command-input"
-          readOnly={isLoading}
         />
 
         {history.length > 0 && (
