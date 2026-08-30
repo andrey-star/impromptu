@@ -272,7 +272,7 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isListening ? "Listening... speak notes, chords, or timing" : `Dictate notes, chords, or edits (e.g. 'In bar 2 melody goes C then G then Eb')...`}
+          placeholder={isListening ? "Listening... (speak notes or chords)" : "Dictate notes, chords, or edits..."}
           className="command-input"
           disabled={isLoading}
         />
