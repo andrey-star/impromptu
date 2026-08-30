@@ -17,6 +17,16 @@ Impromptu is your musical amanuensis. You compose; Impromptu transcribes.
 
 ---
 
+## Workflow in Action
+
+**1. Dictating an Edit:** Type or speak a musical thought directly from the piano:
+![Prompting Impromptu](img/screen1.png)
+
+**2. Live Re-Engraving & Response:** The sheet music updates in real time with an instant summary of changes:
+![Live Engraving and Response](img/screen2.png)
+
+---
+
 ## 2. Architecture
 
 ```
