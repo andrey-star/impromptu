@@ -152,15 +152,27 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
     }
   };
 
+  // Global Escape key listener to dismiss response card/history from anywhere
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setLastResponse(null);
+        setError(null);
+        setShowHistory(false);
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendPrompt();
-    }
-    if (e.key === 'Escape') {
-      setLastResponse(null);
-      setError(null);
-      setShowHistory(false);
     }
   };
 
@@ -274,7 +286,7 @@ export default function CommandBar({ abcCode, setAbcCode, currentFile }) {
           onKeyDown={handleKeyDown}
           placeholder={isListening ? "Listening... (speak notes or chords)" : "Dictate notes, chords, or edits..."}
           className="command-input"
-          disabled={isLoading}
+          readOnly={isLoading}
         />
 
         {history.length > 0 && (
